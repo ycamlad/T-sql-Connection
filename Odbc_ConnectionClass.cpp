@@ -94,8 +94,8 @@ bool Odbc_ConnectionClass::ExecuteQuery(const SQLWCHAR* query, std::vector<std::
 		std::vector<std::string> row;
 		for (int i = 1; i <= numCols; ++i) {
 			SQLCHAR buffer[512];
-			SQLINTEGER indPtr;
-			ret = SQLGetData(sqlStmtHandle, i, SQL_C_CHAR, buffer, sizeof(buffer), &indPtr);
+			SQLLEN indPtr = NULL;
+			ret = SQLGetData(sqlStmtHandle, i, SQL_C_CHAR, buffer, sizeof(buffer),&indPtr);
 			if (indPtr == SQL_NULL_DATA) {
 				row.push_back("NULL");
 			}
