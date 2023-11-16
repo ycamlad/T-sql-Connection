@@ -14,7 +14,8 @@ public:
     ~Odbc_ConnectionClass();
 
     bool Connect(const char* server, const char* database);
-    bool ExecuteQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& reuslt);
+    bool SelectQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& reuslt);
+    bool DeleteQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& result);
     void Disconnect();
 
 

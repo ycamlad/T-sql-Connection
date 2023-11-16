@@ -67,7 +67,7 @@ bool Odbc_ConnectionClass::Connect(const char* server, const char* database) {
 }
 
 
-bool Odbc_ConnectionClass::ExecuteQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& result) {
+bool Odbc_ConnectionClass::SelectQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& result) {
 	SQLRETURN ret;
 	const size_t bufferSize = 1000;
 	ret = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle);
@@ -85,8 +85,7 @@ bool Odbc_ConnectionClass::ExecuteQuery(const SQLWCHAR* query, std::vector<std::
 		SQLCHAR colName[1024];
 		SQLSMALLINT colNameLen;
 		SQLColAttribute(sqlStmtHandle,i,SQL_DESC_NAME,colName,sizeof(colName),&colNameLen,NULL);
-
-		wprintf(L"Column %d: %s\n",i,(wchar_t*)colName);
+		wprintf(L"%s\t",(wchar_t*)colName);
 	}
 	std::wcout << std::endl;
 
@@ -103,6 +102,54 @@ bool Odbc_ConnectionClass::ExecuteQuery(const SQLWCHAR* query, std::vector<std::
 				buffer[indPtr / sizeof(buffer[0])] = L'\0';
 				row.push_back(reinterpret_cast<const char*>(buffer));
 				
+			}
+		}
+
+		result.push_back(row);
+		ret = SQLFetch(sqlStmtHandle);
+	}
+
+	SQLFreeStmt(sqlStmtHandle, SQL_DROP);
+
+	return true;
+}
+
+bool Odbc_ConnectionClass::DeleteQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& result) {
+	SQLRETURN ret;
+	const size_t bufferSize = 1000;
+	ret = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle);
+	ret = SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)query, SQL_NTS);
+
+	if (ret == SQL_ERROR) {
+		return false;
+	}
+
+	// Fetch results
+	SQLSMALLINT numCols = 0;
+	SQLNumResultCols(sqlStmtHandle, &numCols);
+
+	// Column Names Display
+	for (SQLSMALLINT i = 1; i <= numCols; i++) {
+		SQLCHAR colName[1024];
+		SQLSMALLINT colNameLen;
+		SQLColAttribute(sqlStmtHandle, i, SQL_DESC_NAME, colName, sizeof(colName), &colNameLen, NULL);
+		wprintf(L"%s\t", (wchar_t*)colName);
+	}
+	std::wcout << std::endl;
+
+	while (ret != SQL_NO_DATA) {
+		std::vector<std::string> row;
+		for (int i = 1; i <= numCols; ++i) {
+			SQLCHAR buffer[512];
+			SQLLEN indPtr = NULL;
+			ret = SQLGetData(sqlStmtHandle, i, SQL_C_CHAR, buffer, sizeof(buffer), &indPtr);
+			if (indPtr == SQL_NULL_DATA) {
+				row.push_back("NULL");
+			}
+			else if (indPtr > 0 && indPtr < sizeof(buffer) / sizeof(buffer[0])) {
+				buffer[indPtr / sizeof(buffer[0])] = L'\0';
+				row.push_back(reinterpret_cast<const char*>(buffer));
+
 			}
 		}
 
