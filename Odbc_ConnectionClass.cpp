@@ -117,17 +117,18 @@ bool Odbc_ConnectionClass::SelectQuery(const SQLWCHAR* query, std::vector<std::v
 bool Odbc_ConnectionClass::DeleteQuery( SQLWCHAR* ID, std::vector<std::vector<std::string>>& result) {
 	SQLRETURN ret;
 	const size_t bufferSize = 1000;
+	const SQLULEN idLenght = sizeof(ID);
 	ret = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle);
 
 	// Start of transaction
 	ret = SQLSetConnectAttr(sqlConnHandle, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)SQL_AUTOCOMMIT_OFF, SQL_NTS);
 
 	// Using a parameterized query to avoid SQL injection for DELETE
-	SQLWCHAR deleteQuery[] = L"DELETE FROM StudentInformation WHERE StudnetID = ?";
+	SQLWCHAR deleteQuery[] = L"INSERT INTO StudentInformation (StudentID) VALUES(?)";
 	ret = SQLPrepare(sqlStmtHandle, deleteQuery,SQL_NTS);
 
 	// Bind the parameter for DELETE
-	ret = SQLBindParameter(sqlStmtHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255, 0, ID, 0, nullptr);
+	ret = SQLBindParameter(sqlStmtHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 3, 0, (SQLCHAR*)ID, 0, nullptr);
 
 	// Execute the prepared DELETE statement
 	ret = SQLExecute(sqlStmtHandle);

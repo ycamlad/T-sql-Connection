@@ -8,8 +8,8 @@ int main() {
     if (db.Connect("DESKTOP-53IN7K4\\MSSQLSERVER02", "StudentManagement")) {
         SQLWCHAR* query = (SQLWCHAR*)L"SELECT * FROM StudentInformation";
         SQLWCHAR* query2 = (SQLWCHAR*)L"SELECT @@VERSION";
-        SQLWCHAR* query3 = (SQLWCHAR*)L"INSERT INTO StudentInformation (StudentID) VALUES('855')";
-        SQLWCHAR* query4 = (SQLWCHAR*)L"855";
+        SQLWCHAR* query3 = (SQLWCHAR*)L"INSERT INTO StudentInformation (StudentID) VALUES('857')";
+        SQLWCHAR* query4 = (SQLWCHAR*)L"856";
 
 
        
