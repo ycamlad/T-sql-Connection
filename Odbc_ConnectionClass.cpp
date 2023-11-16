@@ -114,52 +114,69 @@ bool Odbc_ConnectionClass::SelectQuery(const SQLWCHAR* query, std::vector<std::v
 	return true;
 }
 
-bool Odbc_ConnectionClass::DeleteQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& result) {
+bool Odbc_ConnectionClass::DeleteQuery( SQLWCHAR* ID, std::vector<std::vector<std::string>>& result) {
 	SQLRETURN ret;
 	const size_t bufferSize = 1000;
 	ret = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle);
-	ret = SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)query, SQL_NTS);
 
-	if (ret == SQL_ERROR) {
-		return false;
-	}
+	// Start of transaction
+	ret = SQLSetConnectAttr(sqlConnHandle, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)SQL_AUTOCOMMIT_OFF, SQL_NTS);
 
-	// Fetch results
-	SQLSMALLINT numCols = 0;
-	SQLNumResultCols(sqlStmtHandle, &numCols);
+	// Using a parameterized query to avoid SQL injection for DELETE
+	SQLWCHAR deleteQuery[] = L"DELETE FROM StudentInformation WHERE StudnetID = ?";
+	ret = SQLPrepare(sqlStmtHandle, deleteQuery,SQL_NTS);
 
-	// Column Names Display
-	for (SQLSMALLINT i = 1; i <= numCols; i++) {
-		SQLCHAR colName[1024];
-		SQLSMALLINT colNameLen;
-		SQLColAttribute(sqlStmtHandle, i, SQL_DESC_NAME, colName, sizeof(colName), &colNameLen, NULL);
-		wprintf(L"%s\t", (wchar_t*)colName);
-	}
-	std::wcout << std::endl;
+	// Bind the parameter for DELETE
+	ret = SQLBindParameter(sqlStmtHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255, 0, ID, 0, nullptr);
 
-	while (ret != SQL_NO_DATA) {
-		std::vector<std::string> row;
-		for (int i = 1; i <= numCols; ++i) {
-			SQLCHAR buffer[512];
-			SQLLEN indPtr = NULL;
-			ret = SQLGetData(sqlStmtHandle, i, SQL_C_CHAR, buffer, sizeof(buffer), &indPtr);
-			if (indPtr == SQL_NULL_DATA) {
-				row.push_back("NULL");
+	// Execute the prepared DELETE statement
+	ret = SQLExecute(sqlStmtHandle);
+
+	if (SQL_SUCCEEDED(ret)) {
+		// Commit the transaction
+		SQLSetConnectAttr(sqlConnHandle,SQL_ATTR_AUTOCOMMIT,(SQLPOINTER)SQL_AUTOCOMMIT_ON,SQL_NTS);
+
+		//  Clear the statement handle for re-use
+		SQLFreeHandle(SQL_HANDLE_STMT,sqlStmtHandle);
+		ret = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle);
+
+		// Now, execute the SELECT query to fetchthe updated results
+		SQLWCHAR selectQuery[] = L"SELECT * FROM StudentInformation";
+		ret = SQLExecDirect(sqlStmtHandle, selectQuery, SQL_NTS);
+
+		// Check the result of SELECT
+		if (SQL_SUCCEEDED(ret)) {
+			SQLSMALLINT numCols = 0;
+			SQLNumResultCols(sqlStmtHandle, &numCols);
+
+			while (ret != SQL_NO_DATA) {
+				std::vector<std::string> row;
+				for (int i = 1; i <= numCols; ++i) {
+					SQLCHAR buffer[512];
+					SQLLEN indPtr = NULL;
+					ret = SQLGetData(sqlStmtHandle, i, SQL_C_CHAR, buffer, sizeof(buffer), &indPtr);
+					if (indPtr == SQL_NULL_DATA) {
+						row.push_back("NULL");
+					}
+					else if (indPtr > 0 && indPtr < sizeof(buffer) / sizeof(buffer[0])) {
+						buffer[indPtr / sizeof(buffer[0])] = L'\0';
+						row.push_back(reinterpret_cast<const char*>(buffer));
+
+					}
+				}
+
+				result.push_back(row);
+				ret = SQLFetch(sqlStmtHandle);
 			}
-			else if (indPtr > 0 && indPtr < sizeof(buffer) / sizeof(buffer[0])) {
-				buffer[indPtr / sizeof(buffer[0])] = L'\0';
-				row.push_back(reinterpret_cast<const char*>(buffer));
 
-			}
+			SQLFreeStmt(sqlStmtHandle, SQL_DROP);
+
+			return true;
 		}
-
-		result.push_back(row);
-		ret = SQLFetch(sqlStmtHandle);
 	}
 
-	SQLFreeStmt(sqlStmtHandle, SQL_DROP);
-
-	return true;
+	SQLSetConnectAttr(sqlConnHandle, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)SQL_AUTOCOMMIT_ON, SQL_NTS);
+	return false;
 }
 
 void Odbc_ConnectionClass::Disconnect() {

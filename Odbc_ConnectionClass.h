@@ -15,7 +15,7 @@ public:
 
     bool Connect(const char* server, const char* database);
     bool SelectQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& reuslt);
-    bool DeleteQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& result);
+    bool DeleteQuery( SQLWCHAR* ID, std::vector<std::vector<std::string>>& result);
     void Disconnect();
 
 
