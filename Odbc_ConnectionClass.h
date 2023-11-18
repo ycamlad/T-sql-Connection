@@ -14,8 +14,9 @@ public:
     ~Odbc_ConnectionClass();
 
     bool Connect(const char* server, const char* database);
-    bool SelectQuery(const SQLWCHAR* query, std::vector<std::vector<std::string>>& reuslt);
-    bool DeleteQuery( SQLWCHAR* ID, std::vector<std::vector<std::string>>& result);
+    bool InsertStudent(const SQLWCHAR &Firstname, const SQLWCHAR &Lastname,const SQLWCHAR &City,std::vector<std::vector<std::string>>& result);
+    bool SelectAllOrByID( const SQLINTEGER ID, std::vector<std::vector<std::string>>& reuslt);
+    bool DeleteByID( const SQLINTEGER ID, std::vector<std::vector<std::string>>& result);
     void Disconnect();
 
 
