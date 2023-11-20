@@ -67,7 +67,7 @@ bool Odbc_ConnectionClass::Connect(const char* server, const char* database) {
 }
 
 
-bool Odbc_ConnectionClass::InsertStudent(const SQLWCHAR &Firstname, const SQLWCHAR &Lastname, const SQLWCHAR &City,std::vector<std::vector<std::string>>& result) {
+bool Odbc_ConnectionClass::InsertStudent(const SQLWCHAR &Firstname, const SQLWCHAR &Lastname, const SQLWCHAR &City,std::vector<std::vector<std::string>> &result) {
 	SQLRETURN ret;
 	const size_t buffer = 1000;
 	const size_t Flenght = strlen((char*)Firstname), Llenght = strlen((char*)Lastname), Clenght = strlen((char*)City);
@@ -137,7 +137,7 @@ bool Odbc_ConnectionClass::InsertStudent(const SQLWCHAR &Firstname, const SQLWCH
 }
 
 
-bool Odbc_ConnectionClass::SelectAllOrByID(const SQLINTEGER ID, std::vector<std::vector<std::string>>& result) {
+bool Odbc_ConnectionClass::SelectAllOrByID(const SQLINTEGER &ID, std::vector<std::vector<std::string>> &result) {
 	SQLRETURN ret;
 	if (ID == NULL) {
 		std::cout << "hello";
@@ -189,7 +189,20 @@ bool Odbc_ConnectionClass::SelectAllOrByID(const SQLINTEGER ID, std::vector<std:
 	return true;
 }
 
-bool Odbc_ConnectionClass::DeleteByID(const SQLINTEGER ID, std::vector<std::vector<std::string>>& result) {
+
+bool Odbc_ConnectionClass::UpdateStudent(const SQLINTEGER &ID, SQLWCHAR &Firstname, SQLWCHAR &Lastname, SQLWCHAR &City, std::vector<std::vector<std::string>> &result) {
+	SQLRETURN ret;
+	const size_t bufferSize = 1000;
+
+	ret = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle);
+
+	// Start of transaction
+	ret = SQLSetConnectAttr(sqlConnHandle, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)SQL_AUTOCOMMIT_OFF, SQL_NTS);
+
+	return true;
+}
+
+bool Odbc_ConnectionClass::DeleteByID(const SQLINTEGER &ID, std::vector<std::vector<std::string>> &result) {
 	SQLRETURN ret;
 	const size_t bufferSize = 1000;
 
