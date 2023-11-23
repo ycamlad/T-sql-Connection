@@ -28,7 +28,6 @@ bool Odbc_ConnectionClass::Connect(const char* server, const char* database) {
 
 	switch (SQLDriverConnect(sqlConnHandle,
 		NULL,
-		
 		(SQLWCHAR*)L"DRIVER={SQL Server};SERVER=DESKTOP-53IN7K4\\MSSQLSERVER02;DATABASE=StudentManagement;Trusted_Connection=yes;",
 		SQL_NTS,
 		retconstring,
@@ -199,6 +198,14 @@ bool Odbc_ConnectionClass::UpdateStudent(const SQLINTEGER &ID, SQLWCHAR &Firstna
 	// Start of transaction
 	ret = SQLSetConnectAttr(sqlConnHandle, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)SQL_AUTOCOMMIT_OFF, SQL_NTS);
 
+	SQLWCHAR FirstNameQuery[] = L" UPDATE StudentInformation SET Firstname =?  WHERE ID = ?";
+
+	ret = SQLPrepare(sqlStmtHandle, FirstNameQuery, SQL_NTS);
+
+	ret = SQLBindParameter(sqlStmtHandle, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, (SQLINTEGER*)ID, 0, nullptr);
+
+	ret = SQLExecute(sqlStmtHandle);
+
 	return true;
 }
 
@@ -267,6 +274,10 @@ bool Odbc_ConnectionClass::DeleteByID(const SQLINTEGER &ID, std::vector<std::vec
 	SQLSetConnectAttr(sqlConnHandle, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)SQL_AUTOCOMMIT_ON, SQL_NTS);
 	return false;
 }
+
+//SQLWCHAR Odbc_ConnectionClass::deleteWhiteSpace(SQLWCHAR word) {
+//
+//}
 
 void Odbc_ConnectionClass::Disconnect() {
 	SQLFreeHandle(SQL_HANDLE_STMT, sqlStmtHandle);
