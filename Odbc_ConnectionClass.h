@@ -14,11 +14,11 @@ public:
     ~Odbc_ConnectionClass();
 
     bool Connect(const char* server, const char* database);
-    bool InsertStudent(const SQLWCHAR &Firstname, const SQLWCHAR &Lastname,const SQLWCHAR &City,std::vector<std::vector<std::string>>& result);
+    bool InsertStudent(const std::wstring &theFirstname, const std::wstring&theLastname,const std::wstring&theCity,std::vector<std::vector<std::string>>& result);
     bool SelectAllOrByID( const SQLINTEGER &ID, std::vector<std::vector<std::string>>& reuslt);
-    bool UpdateStudent(const SQLINTEGER &ID,SQLWCHAR &Firstname,SQLWCHAR &Lastname,SQLWCHAR &City, std::vector<std::vector<std::string>>& result);
+    bool UpdateStudent(const SQLINTEGER *ID,std::wstring &Firstname,std::wstring &Lastname,std::wstring &City, std::vector<std::vector<std::string>>& result);
     SQLWCHAR deleteWhiteSpace(SQLWCHAR word);
-    bool DeleteByID( const SQLINTEGER &ID, std::vector<std::vector<std::string>>& result);
+    bool DeleteByID( const SQLINTEGER* ID, std::vector<std::vector<std::string>>& result);
     void Disconnect();
 
 
